@@ -1,3 +1,7 @@
+#
+# Modificación para incluir la ejecución de aplicaciones
+# y no solo comandos
+#
 import logging
 import socket
 import time
@@ -90,6 +94,10 @@ COMMANDS = {
     'yellow': 'NRC_YELLOW-ONOFF',
 }
 
+APPLICATIONS = {
+    'netflix': '0010000200000001',
+    'youtube': '0070000200000001'
+}
 
 class Viera(object):
     def __init__(self, hostname, control_url, service_type):
@@ -104,6 +112,9 @@ class Viera(object):
                 setattr(self, name, self.send_num(key))
             else:
                 setattr(self, name, self.send_key(key))
+        
+        for name, key in APPLICATIONS.items():
+            setattr(self, name, self.launch_app(key))
 
     @staticmethod
     def discover():
@@ -224,6 +235,56 @@ class Viera(object):
 
             LOGGER.info("Sending key %s", key)
             LOGGER.debug("Sending key to %s:\n%s\n%s", self.control_url, headers, soap_body)
+
+            req = Request(self.control_url, soap_body, headers)
+            urlopen(req).read()
+
+        return func
+
+    def launch_app(self, key):
+        def func():
+            time_last_call = time.time() - self.last_called
+            if time_last_call < self.throttle:
+                LOGGER.debug("Sleeping for %s", self.throttle - time_last_call)
+                time.sleep(self.throttle - time_last_call)
+                self.last_called = time.time()
+
+            name = 'X_LaunchApp'
+            params = '<X_LaunchKeyword>product_id={}</X_LaunchKeyword>'.format(key)
+
+            soap_body = (
+                '<?xml version="1.0"?>'
+                '<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope" '
+                'SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">'
+                '<SOAP-ENV:Body>'
+                '<m:{name} xmlns:m="{service_type}">'
+                '<X_AppType>vc_app</X_AppType>'
+                '{params}'
+                '</m:{name}>'
+                '</SOAP-ENV:Body>'
+                '</SOAP-ENV:Envelope>'
+            ).format(
+                name=name,
+                service_type=self.service_type,
+                params=params
+            )
+
+            soap_body = soap_body.encode('utf-8')
+
+            headers = {
+                'Host': self.hostname,
+                'Content-Length': len(soap_body),
+                'Content-Type': 'text/xml',
+                'SOAPAction': '"{}#{}"'.format(self.service_type, name),
+            }
+
+            LOGGER.info("Launching App %s", key)
+            LOGGER.debug("Launching App to %s:\n%s\n%s", self.control_url, headers, soap_body)
+
+#            print("Tipo ", self.service_type)
+#            print("URL ", self.control_url)
+#            print("Contenido ", soap_body)
+#            print("Headers ", headers)
 
             req = Request(self.control_url, soap_body, headers)
             urlopen(req).read()
