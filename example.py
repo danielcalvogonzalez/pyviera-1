@@ -4,6 +4,10 @@ from pyviera import Viera, COMMANDS
 print(COMMANDS.keys())
 print()
 
+# List out all available applications
+print(APPLICATIONS.keys())
+print()
+
 # Look for any supported TVs
 tvs = Viera.discover()
 
