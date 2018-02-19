@@ -2,6 +2,8 @@
 
 PyViera allows you control your Panasonic VIERA TV using Python.
 
+Now, it also allows to launch app in your Panasonic VIERA TV.
+
 ## Example
 
 ```python
@@ -28,6 +30,12 @@ else:
     print("No TVs could be found")
 ```
 
+## Example
+
+You can control your TV directly from the command line by using PanasonicCommand.py script.
+
+Just call it with an argument, the command to send to the TV.
+
 ## Compatibility
 According to the description on the [app store](https://itunes.apple.com/us/app/panasonic-tv-remote-2/id590335696?mt=8), the following models are supported:
 
@@ -35,4 +43,5 @@ According to the description on the [app store](https://itunes.apple.com/us/app/
 
 
 ## Contributors
-This is a forked repository, based on [tomokas](https://github.com/tomokas/pyviera) work.
+This is a forked repository, originally based on [tomokas](https://github.com/tomokas/pyviera) work and on
+[tonybaloney](https://github.com/tonybaloney/pyviera-1).
